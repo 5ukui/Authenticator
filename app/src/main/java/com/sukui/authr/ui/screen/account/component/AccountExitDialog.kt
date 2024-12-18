@@ -1,0 +1,34 @@
+package com.sukui.authr.ui.screen.account.component
+
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.sukui.authr.R
+
+@Composable
+fun AccountExitDialog(
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = {
+            Text(stringResource(R.string.account_discard_title))
+        },
+        text = {
+            Text(stringResource(R.string.account_discard_subtitle))
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.account_discard_buttons_discard))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text(stringResource(R.string.account_discard_buttons_cancel))
+            }
+        }
+    )
+}
