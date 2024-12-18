@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.xinto.mauth.ui.theme.MauthTheme
 
+
 @Composable
 fun PinScaffold(
     modifier: Modifier = Modifier,
@@ -41,7 +42,8 @@ fun PinScaffold(
     description: (@Composable () -> Unit)? = null,
     error: Boolean = false,
     codeLength: Int,
-) {
+
+    ) {
     Scaffold(
         modifier = modifier,
         topBar = topBar,

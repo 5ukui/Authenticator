@@ -3,7 +3,7 @@
 
     <string name="auth_title">Enter your PIN</string>
     <string name="auth_biometrics_title">Biometric Authentication</string>
-    <string name="auth_biometrics_cancel">Cancel</string>
+    <string name="auth_biometrics_cancel">Use PIN</string>
 
     <string name="home_dashboard_empty">Nothing here yet</string>
     <string name="home_dashboard_error">Failed to load accounts</string>
