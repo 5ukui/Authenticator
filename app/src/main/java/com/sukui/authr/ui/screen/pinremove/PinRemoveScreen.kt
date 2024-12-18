@@ -63,7 +63,6 @@ fun PinRemoveScreen(
                 }
             )
         },
-        description = null,
         state = rememberPinBoardState(
             showEnter = true,
             onNumberClick = onNumberEnter,

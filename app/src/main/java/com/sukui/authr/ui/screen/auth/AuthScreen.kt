@@ -96,11 +96,6 @@ fun AuthScreen(
     )
     PinScaffold(
         modifier = modifier,
-        description = {
-            if (onBackPress == null) {
-                Text(stringResource(R.string.auth_title))
-            }
-        },
         topBar = {
             if (onBackPress != null) {
                 LargeTopAppBar(

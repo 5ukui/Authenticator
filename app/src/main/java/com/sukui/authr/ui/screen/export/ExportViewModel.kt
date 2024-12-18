@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.core.content.getSystemService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.sukui.authr.Mauth
+import com.sukui.authr.authr
 import com.sukui.authr.R
 import com.sukui.authr.domain.account.AccountRepository
 import com.sukui.authr.util.catchMap
@@ -48,7 +48,7 @@ class ExportViewModel(
         )
 
     fun copyUrlToClipboard(label: String, url: String) {
-        val application = getApplication<Mauth>()
+        val application = getApplication<authr>()
         val clipboardService = application.getSystemService<ClipboardManager>() ?: return
         val clipData = ClipData.newPlainText(label, url).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

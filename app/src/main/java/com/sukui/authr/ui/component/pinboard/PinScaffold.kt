@@ -39,7 +39,6 @@ fun PinScaffold(
     containerColor: Color = MaterialTheme.colorScheme.background,
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets,
-    description: (@Composable () -> Unit)? = null,
     error: Boolean = false,
     codeLength: Int,
 
@@ -65,22 +64,7 @@ fun PinScaffold(
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (description != null) {
-                Spacer(modifier = Modifier.weight(1f))
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CompositionLocalProvider(
-                        LocalTextStyle provides MaterialTheme.typography.headlineMedium.copy(
-                            textAlign = TextAlign.Center
-                        )
-                    ) {
-                        description()
-                    }
-                }
-                Spacer(modifier = Modifier.weight(1f))
-            }
+
             PinDisplay(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -103,9 +87,6 @@ fun PinScaffold(
 fun PinScaffold_WithDescription() {
     MauthTheme {
         PinScaffold(
-            description = {
-                Text("Enter PIN")
-            },
             codeLength = 5
         )
     }

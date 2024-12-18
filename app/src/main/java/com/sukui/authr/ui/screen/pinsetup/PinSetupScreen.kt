@@ -5,14 +5,17 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukui.authr.R
 import com.sukui.authr.ui.component.pinboard.PinScaffold
@@ -80,7 +83,10 @@ fun PinSetupScreen(
                             is PinSetupScreenState.Initial -> R.string.pinsetup_title_create
                             is PinSetupScreenState.Confirm -> R.string.pinsetup_title_confirm
                         }
-                        Text(stringResource(resource))
+                        Text(
+                            text = stringResource(resource),
+                            modifier = Modifier.padding(start = 25.dp)
+                        )
                     }
                 },
                 navigationIcon = {
@@ -93,7 +99,6 @@ fun PinSetupScreen(
                 }
             )
         },
-        description = null,
         state = rememberPinBoardState(
             showEnter = true,
             onNumberClick = onNumberEnter,

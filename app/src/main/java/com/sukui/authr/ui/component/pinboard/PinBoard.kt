@@ -76,7 +76,7 @@ fun PinBoard(
                     }
                 }
                 is PinBoardState.PinBoardButton.Empty -> {
-                    Spacer(Modifier.aspectRatio(1f).weight(1f).size(PinButtonDefaults.PinButtonMinSize))
+                    Spacer(Modifier.aspectRatio(2f).weight(1f).size(PinButtonDefaults.PinButtonMinSize))
                 }
             }
         }

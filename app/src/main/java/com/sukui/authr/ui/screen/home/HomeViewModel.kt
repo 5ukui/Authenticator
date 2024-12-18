@@ -13,7 +13,7 @@ import android.widget.Toast
 import androidx.core.content.getSystemService
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.sukui.authr.Mauth
+import com.sukui.authr.authr
 import com.sukui.authr.R
 import com.sukui.authr.core.settings.Settings
 import com.sukui.authr.core.settings.model.SortSetting
@@ -72,7 +72,7 @@ class HomeViewModel(
         )
 
     fun copyCodeToClipboard(label: String, code: String, visible: Boolean) {
-        val application = getApplication<Mauth>()
+        val application = getApplication<authr>()
         val clipboardService = application.getSystemService<ClipboardManager>() ?: return
         val clipData = ClipData.newPlainText(label, code).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -117,7 +117,7 @@ class HomeViewModel(
     fun getAccountInfoFromQrUri(uri: Uri?): DomainAccountInfo? {
         if (uri == null) return null
 
-        val application = getApplication<Mauth>()
+        val application = getApplication<authr>()
 
         val contentResolver = application.contentResolver
         val bitmap = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {

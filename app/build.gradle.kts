@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.xinto.mauth"
+    namespace = "com.sukui.authr"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.xinto.mauth"
+        applicationId = "com.sukui.authr"
         minSdk = 21
         targetSdk = 35
         versionCode = 90

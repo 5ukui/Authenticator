@@ -45,7 +45,7 @@ fun HomeScaffold(
 ) {
     ResponsiveAppBarScaffold(
         modifier = modifier,
-        appBarTitle = { Text(stringResource(id = R.string.app_name)) },
+        appBarTitle = {},
         scrollBehavior = scrollBehavior,
         actions = { arrangement ->
             AnimatedContent(
