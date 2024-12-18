@@ -1,14 +1,17 @@
 package com.sukui.authr.ui.screen.pinremove
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukui.authr.R
 import com.sukui.authr.ui.component.pinboard.PinScaffold
@@ -51,7 +54,10 @@ fun PinRemoveScreen(
         topBar = {
             LargeTopAppBar(
                 title = {
-                    Text(stringResource(R.string.pinremove_title))
+                    Text(
+                        text = stringResource(R.string.pinremove_title),
+                        modifier = Modifier.padding(start = 25.dp)
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {

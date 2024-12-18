@@ -7,8 +7,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
@@ -29,6 +31,8 @@ import com.sukui.authr.R
 import com.sukui.authr.core.settings.model.SortSetting
 import com.sukui.authr.ui.component.ResponsiveAppBarScaffold
 import com.sukui.authr.ui.screen.home.HomeMoreMenu
+import com.sukui.authr.ui.component.DropDownTheme
+
 
 @Composable
 fun HomeScaffold(
@@ -76,26 +80,28 @@ fun HomeScaffold(
                                 painter = painterResource(R.drawable.ic_more_vert),
                                 contentDescription = null
                             )
-                            DropdownMenu(
-                                expanded = isMoreActionsVisible,
-                                onDismissRequest = {
-                                    isMoreActionsVisible = false
-                                }
-                            ) {
-                                HomeMoreMenu.entries.forEach { menu ->
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(menu.title)) },
-                                        leadingIcon = {
-                                            Icon(
-                                                painter = painterResource(menu.icon),
-                                                contentDescription = null
-                                            )
-                                        },
-                                        onClick = {
-                                            isMoreActionsVisible = false
-                                            onMenuNavigate(menu)
-                                        }
-                                    )
+                            DropDownTheme {
+                                DropdownMenu(
+                                    expanded = isMoreActionsVisible,
+                                    onDismissRequest = {
+                                        isMoreActionsVisible = false
+                                    },
+                                ) {
+                                    HomeMoreMenu.entries.forEach { menu ->
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(menu.title)) },
+                                            leadingIcon = {
+                                                Icon(
+                                                    painter = painterResource(menu.icon),
+                                                    contentDescription = null
+                                                )
+                                            },
+                                            onClick = {
+                                                isMoreActionsVisible = false
+                                                onMenuNavigate(menu)
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -108,40 +114,42 @@ fun HomeScaffold(
                                 painter = painterResource(R.drawable.ic_sort),
                                 contentDescription = null
                             )
-                            DropdownMenu(
-                                expanded = isSortVisible,
-                                onDismissRequest = {
-                                    isSortVisible = false
-                                }
-                            ) {
-                                SortSetting.entries.forEach {
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            isSortVisible = false
-                                            onActiveSortChange(it)
-                                        },
-                                        text = {
-                                            val resource = remember(it) {
-                                                when (it) {
-                                                    SortSetting.DateAsc -> R.string.home_sort_date_ascending
-                                                    SortSetting.DateDesc -> R.string.home_sort_date_descending
-                                                    SortSetting.LabelAsc -> R.string.home_sort_label_ascending
-                                                    SortSetting.LabelDesc -> R.string.home_sort_label_descending
-                                                    SortSetting.IssuerAsc -> R.string.home_sort_issuer_ascending
-                                                    SortSetting.IssuerDesc -> R.string.home_sort_issuer_descending
+                            DropDownTheme {
+                                DropdownMenu(
+                                    expanded = isSortVisible,
+                                    onDismissRequest = {
+                                        isSortVisible = false
+                                    }
+                                ) {
+                                    SortSetting.entries.forEach {
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                isSortVisible = false
+                                                onActiveSortChange(it)
+                                            },
+                                            text = {
+                                                val resource = remember(it) {
+                                                    when (it) {
+                                                        SortSetting.DateAsc -> R.string.home_sort_date_ascending
+                                                        SortSetting.DateDesc -> R.string.home_sort_date_descending
+                                                        SortSetting.LabelAsc -> R.string.home_sort_label_ascending
+                                                        SortSetting.LabelDesc -> R.string.home_sort_label_descending
+                                                        SortSetting.IssuerAsc -> R.string.home_sort_issuer_ascending
+                                                        SortSetting.IssuerDesc -> R.string.home_sort_issuer_descending
+                                                    }
+                                                }
+                                                Text(stringResource(resource))
+                                            },
+                                            trailingIcon = {
+                                                if (activeSortSetting == it) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.ic_check),
+                                                        contentDescription = null
+                                                    )
                                                 }
                                             }
-                                            Text(stringResource(resource))
-                                        },
-                                        trailingIcon = {
-                                            if (activeSortSetting == it) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.ic_check),
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -12,12 +12,15 @@ import androidx.compose.animation.core.animateValueAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 
 fun getShapeConverter(size: Size, density: Density): TwoWayConverter<CornerBasedShape, AnimationVector4D> {
     return TwoWayConverter(
@@ -86,3 +89,21 @@ fun Animatable(
     initialValue = initialValue,
     typeConverter = getShapeConverter(size, density)
 )
+
+// Add shapes customization here
+val CustomShapes = Shapes(
+    extraSmall = RoundedCornerShape(16.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(4.dp),
+    large = RoundedCornerShape(0.dp)
+)
+
+@Composable
+fun DropDownTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        shapes = CustomShapes,
+        colorScheme = MaterialTheme.colorScheme, // Keep existing color scheme
+        typography = MaterialTheme.typography, // Keep existing typography
+        content = content
+    )
+}
