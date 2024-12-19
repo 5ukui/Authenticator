@@ -10,7 +10,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
@@ -30,6 +33,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.sukui.authr.ui.component.Animatable
@@ -49,15 +53,19 @@ fun PrimaryPinButton(
     colors: PinButtonColors = PinButtonDefaults.primaryPinButtonColors(),
     shapes: PinButtonShapes = PinButtonDefaults.plainPinButtonShapes(),
     content: @Composable () -> Unit
-) = PinButton(
-    onClick = onClick,
-    onLongClick = onLongClick,
-    modifier = modifier,
-    enabled = enabled,
-    colors = colors,
-    shapes = shapes,
-    content = content
-)
+) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp
+    val buttonSize = (screenWidth / 5.2).dp
+    PinButton(
+        onClick = onClick,
+        onLongClick = onLongClick,
+        modifier = Modifier.size(buttonSize),
+        enabled = enabled,
+        colors = colors,
+        shapes = shapes,
+        content = content
+    )
+}
 
 @Composable
 fun PinButton(
@@ -75,7 +83,7 @@ fun PinButton(
     val contentColor by colors.getForegroundColor(interactionSource)
     Box(
         modifier = modifier
-            .aspectRatio(2f)
+            .aspectRatio(1f)
             .sizeIn(
                 minWidth = PinButtonDefaults.PinButtonMinSize,
                 minHeight = PinButtonDefaults.PinButtonMinSize,
@@ -142,7 +150,7 @@ object PinButtonDefaults {
 
     @Composable
     fun plainPinButtonShapes(
-        shape: CornerBasedShape = RoundedCornerShape(15)
+        shape: CornerBasedShape = CircleShape
     ): PinButtonShapes {
         return PinButtonShapes(
             shape = shape,

@@ -17,9 +17,13 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.sukui.authr.R
 import com.sukui.authr.ui.theme.MauthTheme
 
@@ -33,23 +37,31 @@ fun PinBoard(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        maxItemsInEachRow = 3
+        maxItemsInEachRow = 3,
     ) {
         state.buttons.forEach { button ->
+            val screenWidth = LocalConfiguration.current.screenWidthDp
+            val buttonSize = (screenWidth / 5.2).dp
+
             when (button) {
                 is PinBoardState.PinBoardButton.Number -> {
                     PinButton(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .size(buttonSize),
                         onClick = { state.onNumberClick(button.number) }
                     ) {
-                        Text(button.toString())
+                        Text(
+                            text = button.toString(),
+                            fontSize = 25.sp
+                        )
                     }
                 }
                 is PinBoardState.PinBoardButton.Backspace,
                 is PinBoardState.PinBoardButton.Fingerprint,
                 is PinBoardState.PinBoardButton.Enter -> {
                     PrimaryPinButton(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .size(buttonSize),
                         onClick = when (button) {
                             is PinBoardState.PinBoardButton.Backspace -> state.onBackspaceClick
                             is PinBoardState.PinBoardButton.Fingerprint -> state.onFingerprintClick
@@ -76,7 +88,7 @@ fun PinBoard(
                     }
                 }
                 is PinBoardState.PinBoardButton.Empty -> {
-                    Spacer(Modifier.aspectRatio(2f).weight(1f).size(PinButtonDefaults.PinButtonMinSize))
+                    Spacer(Modifier.size(buttonSize))
                 }
             }
         }

@@ -93,17 +93,14 @@ fun Animatable(
 // Add shapes customization here
 val CustomShapes = Shapes(
     extraSmall = RoundedCornerShape(16.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(4.dp),
-    large = RoundedCornerShape(0.dp)
 )
 
 @Composable
 fun DropDownTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         shapes = CustomShapes,
-        colorScheme = MaterialTheme.colorScheme, // Keep existing color scheme
-        typography = MaterialTheme.typography, // Keep existing typography
+        colorScheme = MaterialTheme.colorScheme,
+        typography = MaterialTheme.typography,
         content = content
     )
 }

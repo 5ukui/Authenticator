@@ -92,4 +92,5 @@
     <string name="about_version">Version v%1$s</string>
     <string name="about_links_source">Source</string>
     <string name="about_links_feedback">Feedback</string>
+    <string name="account_actions_cancel">Cancel</string>
 </resources>
