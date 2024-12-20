@@ -1,5 +1,6 @@
 package com.sukui.authr.ui.component.pinboard
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector
@@ -43,6 +44,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun PrimaryPinButton(
@@ -224,12 +230,17 @@ private fun <T, V : AnimationVector> animatePressValue(
     targetValue: T,
     interactionSource: InteractionSource
 ): State<T> {
+    val context = LocalContext.current
+
     LaunchedEffect(interactionSource, initialValue, targetValue) {
         val channel = Channel<Boolean>(1, onBufferOverflow = BufferOverflow.DROP_LATEST)
         launch {
             interactionSource.interactions.collect {
                 if (it is PressInteraction.Press) {
-                    if (animatable.value != targetValue) { //fix animation deadlock
+                    // Trigger vibration
+                    vibrateOnClick(context)
+
+                    if (animatable.value != targetValue) { // Fix animation deadlock
                         animatable.animateTo(
                             targetValue = targetValue,
                             animationSpec = tween(PinButtonDefaults.AnimationDurationPress),
@@ -256,4 +267,19 @@ private fun <T, V : AnimationVector> animatePressValue(
         }
     }
     return animatable.asState()
+}
+
+@SuppressLint("NewApi")
+private fun vibrateOnClick(context: Context) {
+    val vibrator = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibratorManager.defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    }
+
+    if (vibrator.hasVibrator()) {
+        vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE)) // 50ms vibration
+    }
 }
