@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukui.authr.core.settings.model.SortSetting
 import com.sukui.authr.domain.account.model.DomainAccountInfo
 import com.sukui.authr.domain.otp.model.DomainOtpRealtimeData
+import com.sukui.authr.ui.screen.account.EditAccountScreen
 import com.sukui.authr.ui.screen.home.component.HomeAddAccountSheet
 import com.sukui.authr.ui.screen.home.component.HomeDeleteAccountsDialog
 import com.sukui.authr.ui.screen.home.component.HomeScaffold
@@ -35,8 +37,7 @@ fun HomeScreen(
     onAddAccountFromImage: (DomainAccountInfo) -> Unit,
     onSettingsNavigate: () -> Unit,
     onExportNavigate: (accounts: List<UUID>) -> Unit,
-    onAboutNavigate: () -> Unit,
-    onAccountEdit: (UUID) -> Unit
+    onAboutNavigate: () -> Unit
 ) {
     val viewModel: HomeViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -50,20 +51,18 @@ fun HomeScreen(
         }
     }
 
-    HomeScreen(
-        onAddAccountNavigate = {
-            when (it) {
-                HomeAddAccountMenu.ScanQR -> onAddAccountViaScanning()
-                HomeAddAccountMenu.ImageQR -> {
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(
-                            mediaType = ActivityResultContracts.PickVisualMedia.ImageOnly
-                        )
-                    )
-                }
-                HomeAddAccountMenu.Manual -> onAddAccountManually()
-            }
-        },
+    var showAddSheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showEditSheet by remember { mutableStateOf(false) }
+    var accountToEdit by remember { mutableStateOf<UUID?>(null) }
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    HomeScaffold(
+        isSelectionActive = selectedAccounts.isNotEmpty(),
+        onAdd = { showAddSheet = true },
+        onCancelSelection = viewModel::clearAccountSelection,
+        onDeleteSelected = { showDeleteDialog = true },
         onMenuNavigate = {
             when (it) {
                 HomeMoreMenu.Settings -> onSettingsNavigate()
@@ -71,51 +70,8 @@ fun HomeScreen(
                 HomeMoreMenu.About -> onAboutNavigate()
             }
         },
-        onAccountSelect = viewModel::toggleAccountSelection,
-        onCancelAccountSelection = viewModel::clearAccountSelection,
-        onDeleteSelectedAccounts = viewModel::deleteSelectedAccounts,
-        onAccountEdit = onAccountEdit,
-        onAccountCounterIncrease = viewModel::incrementCounter,
-        onAccountCopyCode = viewModel::copyCodeToClipboard,
-        state = state,
-        accountRealtimeData = realTimeData,
-        selectedAccounts = selectedAccounts,
         activeSortSetting = activeSortSetting,
         onActiveSortChange = viewModel::setActiveSort,
-    )
-}
-
-@Composable
-fun HomeScreen(
-    onAddAccountNavigate: (HomeAddAccountMenu) -> Unit,
-    onMenuNavigate: (HomeMoreMenu) -> Unit,
-    onAccountSelect: (UUID) -> Unit,
-    onCancelAccountSelection: () -> Unit,
-    onDeleteSelectedAccounts: () -> Unit,
-    onAccountEdit: (UUID) -> Unit,
-    onAccountCounterIncrease: (UUID) -> Unit,
-    onAccountCopyCode: (String, String, Boolean) -> Unit,
-    state: HomeScreenState,
-    accountRealtimeData: Map<UUID, DomainOtpRealtimeData>,
-    selectedAccounts: List<UUID>,
-    activeSortSetting: SortSetting,
-    onActiveSortChange: (SortSetting) -> Unit
-) {
-    var showAddSheet by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    HomeScaffold(
-        isSelectionActive = selectedAccounts.isNotEmpty(),
-        onAdd = {
-            showAddSheet = true
-        },
-        onCancelSelection = onCancelAccountSelection,
-        onDeleteSelected = {
-            showDeleteDialog = true
-        },
-        onMenuNavigate = onMenuNavigate,
-        activeSortSetting = activeSortSetting,
-        onActiveSortChange = onActiveSortChange,
         scrollBehavior = scrollBehavior
     ) {
         Box(
@@ -124,50 +80,61 @@ fun HomeScreen(
                 .padding(it)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
-            when (state) {
-                is HomeScreenState.Loading -> {
-                    HomeScreenLoading()
-                }
-                is HomeScreenState.Empty -> {
-                    HomeScreenEmpty()
-                }
-                is HomeScreenState.Success -> {
-                    HomeScreenSuccess(
-                        onAccountSelect = onAccountSelect,
-                        onAccountEdit = onAccountEdit,
-                        onAccountCounterIncrease = onAccountCounterIncrease,
-                        onAccountCopyCode = onAccountCopyCode,
-                        accounts = state.accounts,
-                        selectedAccounts = selectedAccounts,
-                        accountRealtimeData = accountRealtimeData
-                    )
-                }
-                is HomeScreenState.Error -> {
-                    HomeScreenError()
-                }
+            when (val currentState = state) {
+                is HomeScreenState.Loading -> HomeScreenLoading()
+                is HomeScreenState.Empty -> HomeScreenEmpty()
+                is HomeScreenState.Success -> HomeScreenSuccess(
+                    onAccountSelect = viewModel::toggleAccountSelection,
+                    onAccountEdit = { accountId ->
+                        if (!showEditSheet) {
+                            accountToEdit = accountId
+                            showEditSheet = true
+                        }
+                    },
+                    onAccountCounterIncrease = viewModel::incrementCounter,
+                    onAccountCopyCode = viewModel::copyCodeToClipboard,
+                    accounts = currentState.accounts,
+                    selectedAccounts = selectedAccounts,
+                    accountRealtimeData = realTimeData
+                )
+                is HomeScreenState.Error -> HomeScreenError()
             }
         }
     }
+
     if (showAddSheet) {
         HomeAddAccountSheet(
-            onDismiss = {
-                showAddSheet = false
-            },
+            onDismiss = { showAddSheet = false },
             onAddAccountNavigate = {
                 showAddSheet = false
-                onAddAccountNavigate(it)
+                when (it) {
+                    HomeAddAccountMenu.ScanQR -> onAddAccountViaScanning()
+                    HomeAddAccountMenu.ImageQR -> photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                    HomeAddAccountMenu.Manual -> onAddAccountManually()
+                }
             }
         )
     }
+    
+    if (showEditSheet && accountToEdit != null) {
+        EditAccountScreen(
+            id = accountToEdit!!,
+            onDismiss = {
+                showEditSheet = false
+                accountToEdit = null
+            }
+        )
+    }
+
     if (showDeleteDialog) {
         HomeDeleteAccountsDialog(
             onConfirm = {
                 showDeleteDialog = false
-                onDeleteSelectedAccounts()
+                viewModel.deleteSelectedAccounts()
             },
-            onCancel = {
-                showDeleteDialog = false
-            }
+            onCancel = { showDeleteDialog = false }
         )
     }
 }

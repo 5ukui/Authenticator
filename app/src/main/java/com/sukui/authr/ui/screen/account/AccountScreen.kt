@@ -3,24 +3,37 @@ package com.sukui.authr.ui.screen.account
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukui.authr.R
 import com.sukui.authr.core.otp.model.OtpDigest
@@ -30,6 +43,7 @@ import com.sukui.authr.ui.screen.account.component.AccountExitDialog
 import com.sukui.authr.ui.screen.account.state.AccountScreenError
 import com.sukui.authr.ui.screen.account.state.AccountScreenLoading
 import com.sukui.authr.ui.screen.account.state.AccountScreenSuccess
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import java.util.UUID
@@ -67,37 +81,68 @@ fun AddAccountScreen(
     )
 }
 
+
 @Composable
 fun EditAccountScreen(
     id: UUID,
-    onExit: () -> Unit
+    onDismiss: () -> Unit
 ) {
     val viewModel: AccountViewModel = koinViewModel {
         parametersOf(AccountViewModelParams.Id(id))
     }
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle()
     val canSave by viewModel.canSave.collectAsStateWithLifecycle()
-    AccountScreen(
-        title = stringResource(R.string.account_title_edit),
-        state = state,
-        hasChanges = hasChanges,
-        canSave = canSave,
-        onIconChange = viewModel::updateIcon,
-        onLabelChange = viewModel::updateLabel,
-        onIssuerChange = viewModel::updateIssuer,
-        onSecretChange = viewModel::updateSecret,
-        onTypeChange = viewModel::updateType,
-        onDigestChange = viewModel::updateDigest,
-        onDigitsChange = viewModel::updateDigits,
-        onCounterChange = viewModel::updateCounter,
-        onPeriodChange = viewModel::updatePeriod,
-        onSave = {
-            viewModel.saveData()
-            onExit()
-        },
-        onExit = onExit
-    )
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
+    val insets = WindowInsets.navigationBars
+
+    LaunchedEffect(Unit) {
+        sheetState.show()
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 600.dp)
+                .windowInsetsPadding(insets)
+        ) {
+            AccountBottomSheetContent(
+                title = stringResource(R.string.account_title_edit),
+                state = state,
+                hasChanges = hasChanges,
+                canSave = canSave,
+                onIconChange = viewModel::updateIcon,
+                onLabelChange = viewModel::updateLabel,
+                onIssuerChange = viewModel::updateIssuer,
+                onSecretChange = viewModel::updateSecret,
+                onTypeChange = viewModel::updateType,
+                onDigestChange = viewModel::updateDigest,
+                onDigitsChange = viewModel::updateDigits,
+                onCounterChange = viewModel::updateCounter,
+                onPeriodChange = viewModel::updatePeriod,
+                onSave = {
+                    viewModel.saveData()
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        onDismiss()
+                    }
+                },
+                onExit = {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        onDismiss()
+                    }
+                }
+            )
+        }
+    }
 }
 
 @Composable
@@ -201,3 +246,81 @@ fun AccountScreen(
         )
     }
 }
+
+
+@Composable
+fun AccountBottomSheetContent(
+    title: String,
+    state: AccountScreenState,
+    hasChanges: Boolean,
+    canSave: Boolean,
+    onIconChange: (Uri?) -> Unit,
+    onLabelChange: (String) -> Unit,
+    onIssuerChange: (String) -> Unit,
+    onSecretChange: (String) -> Unit,
+    onTypeChange: (OtpType) -> Unit,
+    onDigestChange: (OtpDigest) -> Unit,
+    onDigitsChange: (String) -> Unit,
+    onCounterChange: (String) -> Unit,
+    onPeriodChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onExit: () -> Unit
+) {
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(0.dp)
+        ) {
+
+            TextButton(
+                onClick = onExit,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 8.dp, top = 8.dp)
+                    .zIndex(1f)
+            ) {
+                Text(stringResource(R.string.account_actions_exit))
+            }
+
+            TextButton(
+                onClick = onSave,
+                enabled = canSave,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 8.dp, top = 8.dp)
+                    .zIndex(1f)
+            ) {
+                Text(stringResource(R.string.account_actions_save))
+            }
+
+            when (state) {
+                is AccountScreenState.Loading -> {
+                    AccountScreenLoading()
+                }
+
+                is AccountScreenState.Success -> {
+                    AccountScreenSuccess(
+                        info = state.info,
+                        onIconChange = onIconChange,
+                        onLabelChange = onLabelChange,
+                        onIssuerChange = onIssuerChange,
+                        onSecretChange = onSecretChange,
+                        onTypeChange = onTypeChange,
+                        onDigestChange = onDigestChange,
+                        onDigitsChange = onDigitsChange,
+                        onCounterChange = onCounterChange,
+                        onPeriodChange = onPeriodChange
+                    )
+                }
+
+                is AccountScreenState.Error -> {
+                    AccountScreenError()
+                }
+            }
+        }
+    }
+}
+

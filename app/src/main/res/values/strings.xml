@@ -72,6 +72,7 @@
     <string name="pinsetup_title_confirm">Confirm your PIN</string>
 
     <string name="pinremove_title">Enter your PIN</string>
+    <string name="account_actions_exit">Cancel</string>
 
     <string name="theme_title">Theme</string>
     <string name="theme_theme_system">System</string>

@@ -66,6 +66,7 @@ class MainActivity : FragmentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+
         settings.getTheme()
             .launchInLifecycle(lifecycle) {
                 val systemBarStyle = when (it) {
@@ -193,9 +194,6 @@ class MainActivity : FragmentActivity() {
                                     onAddAccountFromImage = {
                                         navigator.navigate(MauthDestination.AddAccount(it))
                                     },
-                                    onAccountEdit = {
-                                        navigator.navigate(MauthDestination.EditAccount(it))
-                                    },
                                     onSettingsNavigate = {
                                         navigator.navigate(MauthDestination.Settings)
                                     },
@@ -241,7 +239,7 @@ class MainActivity : FragmentActivity() {
                             is MauthDestination.EditAccount -> {
                                 EditAccountScreen(
                                     id = screen.id,
-                                    onExit = navigator::pop
+                                    onDismiss = navigator::pop
                                 )
                             }
                             is MauthDestination.PinSetup -> {
@@ -265,6 +263,8 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
+
+
 
     private fun NavController<MauthDestination>.navigateSecure(destination: MauthDestination) {
         val isProtected = runBlocking { auth.isProtected() }

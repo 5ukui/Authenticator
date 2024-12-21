@@ -24,7 +24,7 @@ sealed class MauthDestination(val isFullscreenDialog: Boolean = false) : Parcela
     @Parcelize
     data class EditAccount(
         val id: UUID,
-    ) : MauthDestination(isFullscreenDialog = true)
+    ) : MauthDestination()
 
     @Parcelize
     data object Settings : MauthDestination()
