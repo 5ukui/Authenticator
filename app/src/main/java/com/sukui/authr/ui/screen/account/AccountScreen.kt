@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -92,9 +94,7 @@ fun EditAccountScreen(
     }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val hasChanges by viewModel.hasChanges.collectAsStateWithLifecycle()
     val canSave by viewModel.canSave.collectAsStateWithLifecycle()
-
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
     val insets = WindowInsets.navigationBars
@@ -110,13 +110,11 @@ fun EditAccountScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 600.dp)
+                .heightIn(max = 650.dp)
                 .windowInsetsPadding(insets)
         ) {
             AccountBottomSheetContent(
-                title = stringResource(R.string.account_title_edit),
                 state = state,
-                hasChanges = hasChanges,
                 canSave = canSave,
                 onIconChange = viewModel::updateIcon,
                 onLabelChange = viewModel::updateLabel,
@@ -129,12 +127,6 @@ fun EditAccountScreen(
                 onPeriodChange = viewModel::updatePeriod,
                 onSave = {
                     viewModel.saveData()
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        onDismiss()
-                    }
-                },
-                onExit = {
                     coroutineScope.launch {
                         sheetState.hide()
                         onDismiss()
@@ -250,9 +242,7 @@ fun AccountScreen(
 
 @Composable
 fun AccountBottomSheetContent(
-    title: String,
     state: AccountScreenState,
-    hasChanges: Boolean,
     canSave: Boolean,
     onIconChange: (Uri?) -> Unit,
     onLabelChange: (String) -> Unit,
@@ -263,39 +253,11 @@ fun AccountBottomSheetContent(
     onDigitsChange: (String) -> Unit,
     onCounterChange: (String) -> Unit,
     onPeriodChange: (String) -> Unit,
-    onSave: () -> Unit,
-    onExit: () -> Unit
+    onSave: () -> Unit
 ) {
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(0.dp)
-        ) {
-
-            TextButton(
-                onClick = onExit,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 8.dp, top = 8.dp)
-                    .zIndex(1f)
-            ) {
-                Text(stringResource(R.string.account_actions_exit))
-            }
-
-            TextButton(
-                onClick = onSave,
-                enabled = canSave,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 8.dp, top = 8.dp)
-                    .zIndex(1f)
-            ) {
-                Text(stringResource(R.string.account_actions_save))
-            }
-
+    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+        Column(modifier = Modifier.fillMaxSize()) {
             when (state) {
                 is AccountScreenState.Loading -> {
                     AccountScreenLoading()
@@ -321,6 +283,22 @@ fun AccountBottomSheetContent(
                 }
             }
         }
+
+        Button(
+            onClick = onSave,
+            enabled = canSave,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+                .zIndex(1f),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.account_actions_save),
+            )
+        }
     }
+
 }
 

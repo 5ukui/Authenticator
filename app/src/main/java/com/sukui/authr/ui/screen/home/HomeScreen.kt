@@ -117,7 +117,7 @@ fun HomeScreen(
             }
         )
     }
-    
+
     if (showEditSheet && accountToEdit != null) {
         EditAccountScreen(
             id = accountToEdit!!,

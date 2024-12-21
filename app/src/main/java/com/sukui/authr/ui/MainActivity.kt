@@ -31,7 +31,7 @@ import com.sukui.authr.domain.AuthRepository
 import com.sukui.authr.domain.SettingsRepository
 import com.sukui.authr.domain.account.model.DomainAccountInfo
 import com.sukui.authr.domain.otp.OtpRepository
-import com.sukui.authr.ui.navigation.MauthDestination
+import com.sukui.authr.ui.navigation.authDestination
 import com.sukui.authr.ui.screen.about.AboutScreen
 import com.sukui.authr.ui.screen.account.AddAccountScreen
 import com.sukui.authr.ui.screen.account.EditAccountScreen
@@ -92,9 +92,9 @@ class MainActivity : FragmentActivity() {
 
         val initialScreen = runBlocking {
             if (auth.isProtected()) {
-                MauthDestination.Auth()
+                authDestination.Auth()
             } else {
-                MauthDestination.Home
+                authDestination.Home
             }
         }
 
@@ -114,7 +114,7 @@ class MainActivity : FragmentActivity() {
                     LaunchedEffect(intent.data) {
                         val accountInfo = otp.parseUriToAccountInfo(intent.data.toString())
                         if (accountInfo != null) {
-                            navigator.navigate(MauthDestination.AddAccount(accountInfo))
+                            navigator.navigate(authDestination.AddAccount(accountInfo))
                         }
                     }
 
@@ -139,7 +139,7 @@ class MainActivity : FragmentActivity() {
                                         )
                                     )
                                 }
-                                initial is MauthDestination.Auth && action !is NavAction.Pop -> {
+                                initial is authDestination.Auth && action !is NavAction.Pop -> {
                                     fadeIn() + scaleIn(
                                         initialScale = 0.9f
                                     ) togetherWith fadeOut() + slideOut {
@@ -167,13 +167,13 @@ class MainActivity : FragmentActivity() {
                         }
                     ) { screen ->
                         when (screen) {
-                            is MauthDestination.Auth -> {
+                            is authDestination.Auth -> {
                                 AuthScreen(
                                     onAuthSuccess = {
                                         if (screen.nextDestination != null) {
                                             navigator.replaceLast(screen.nextDestination)
                                         } else {
-                                            navigator.replaceAll(MauthDestination.Home)
+                                            navigator.replaceAll(authDestination.Home)
                                         }
                                     },
                                     onBackPress = if (screen.nextDestination == null) null else { ->
@@ -181,77 +181,77 @@ class MainActivity : FragmentActivity() {
                                     }
                                 )
                             }
-                            is MauthDestination.Home -> {
+                            is authDestination.Home -> {
                                 HomeScreen(
                                     onAddAccountManually = {
                                         navigator.navigate(
-                                            MauthDestination.AddAccount(DomainAccountInfo.new())
+                                            authDestination.AddAccount(DomainAccountInfo.new())
                                         )
                                     },
                                     onAddAccountViaScanning = {
-                                        navigator.navigate(MauthDestination.QrScanner)
+                                        navigator.navigate(authDestination.QrScanner)
                                     },
                                     onAddAccountFromImage = {
-                                        navigator.navigate(MauthDestination.AddAccount(it))
+                                        navigator.navigate(authDestination.AddAccount(it))
                                     },
                                     onSettingsNavigate = {
-                                        navigator.navigate(MauthDestination.Settings)
+                                        navigator.navigate(authDestination.Settings)
                                     },
                                     onExportNavigate = { accounts ->
-                                        navigator.navigateSecure(MauthDestination.Export(accounts))
+                                        navigator.navigateSecure(authDestination.Export(accounts))
                                     },
                                     onAboutNavigate = {
-                                        navigator.navigate(MauthDestination.About)
+                                        navigator.navigate(authDestination.About)
                                     }
                                 )
                             }
-                            is MauthDestination.QrScanner -> {
+                            is authDestination.QrScanner -> {
                                 QrScanScreen(
                                     onBack = navigator::pop,
                                     onScan = {
-                                        navigator.replaceLast(MauthDestination.AddAccount(it))
+                                        navigator.replaceLast(authDestination.AddAccount(it))
                                     }
                                 )
                             }
-                            is MauthDestination.Settings -> {
+                            is authDestination.Settings -> {
                                 SettingsScreen(
                                     onBack = navigator::pop,
                                     onSetupPinCode = {
-                                        navigator.navigate(MauthDestination.PinSetup)
+                                        navigator.navigate(authDestination.PinSetup)
                                     },
                                     onDisablePinCode = {
-                                        navigator.navigate(MauthDestination.PinRemove)
+                                        navigator.navigate(authDestination.PinRemove)
                                     },
                                     onThemeNavigate = {
-                                        navigator.navigate(MauthDestination.Theme)
+                                        navigator.navigate(authDestination.Theme)
                                     }
                                 )
                             }
-                            is MauthDestination.About -> {
+                            is authDestination.About -> {
                                 AboutScreen(onBack = navigator::pop)
                             }
-                            is MauthDestination.AddAccount -> {
+                            is authDestination.AddAccount -> {
                                 AddAccountScreen(
                                     prefilled = screen.params,
                                     onExit = navigator::pop
                                 )
                             }
-                            is MauthDestination.EditAccount -> {
+                            is authDestination.EditAccount -> {
                                 EditAccountScreen(
                                     id = screen.id,
                                     onDismiss = navigator::pop
                                 )
                             }
-                            is MauthDestination.PinSetup -> {
+                            is authDestination.PinSetup -> {
                                 PinSetupScreen(onExit = navigator::pop)
                             }
-                            is MauthDestination.PinRemove -> {
+                            is authDestination.PinRemove -> {
                                 PinRemoveScreen(onExit = navigator::pop)
                             }
-                            is MauthDestination.Theme -> {
+                            is authDestination.Theme -> {
                                 ThemeScreen(onExit = navigator::pop)
                             }
-                            is MauthDestination.Export -> {
+                            is authDestination.Export -> {
                                 ExportScreen(
                                     accounts = screen.accounts,
                                     onBackNavigate = navigator::pop
@@ -266,10 +266,10 @@ class MainActivity : FragmentActivity() {
 
 
 
-    private fun NavController<MauthDestination>.navigateSecure(destination: MauthDestination) {
+    private fun NavController<authDestination>.navigateSecure(destination: authDestination) {
         val isProtected = runBlocking { auth.isProtected() }
         if (isProtected) {
-            navigate(MauthDestination.Auth(nextDestination = destination))
+            navigate(authDestination.Auth(nextDestination = destination))
         } else {
             navigate(destination)
         }
