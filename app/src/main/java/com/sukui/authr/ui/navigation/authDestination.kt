@@ -17,11 +17,6 @@ sealed class authDestination(val isFullscreenDialog: Boolean = false) : Parcelab
     data object QrScanner : authDestination()
 
     @Parcelize
-    data class AddAccount(
-        val params: DomainAccountInfo
-    ) : authDestination()
-
-    @Parcelize
     data object Settings : authDestination()
 
     @Parcelize

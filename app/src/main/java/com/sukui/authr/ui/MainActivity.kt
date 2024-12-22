@@ -235,12 +235,6 @@ class MainActivity : FragmentActivity() {
                             is authDestination.About -> {
                                 AboutScreen(onBack = navigator::pop)
                             }
-                            is authDestination.AddAccount -> {
-                                AddAccountScreen(
-                                    prefilled = screen.params,
-                                    onDismiss = navigator::pop
-                                )
-                            }
                             is authDestination.PinSetup -> {
                                 PinSetupScreen(onExit = navigator::pop)
                             }
@@ -260,18 +254,14 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
-                // Launch modal only after state is updated
-                LaunchedEffect(prefilled) {
-                    if (showAddManualSheet) {
-                        showAddManualSheet = false
-                        showAddManualSheet = true
-                    }
-                }
 
                 if (showAddManualSheet) {
                     AddAccountScreen(
                         prefilled = prefilled,
-                        onDismiss = { showAddManualSheet = false }
+                        onDismiss = {
+                            showAddManualSheet = false
+                            prefilled = DomainAccountInfo.new() // Clear fields on dismiss
+                        }
                     )
                 }
             }

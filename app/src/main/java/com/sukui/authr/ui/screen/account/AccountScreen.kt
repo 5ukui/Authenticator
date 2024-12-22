@@ -17,8 +17,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -52,53 +56,86 @@ fun AddAccountScreen(
     val coroutineScope = rememberCoroutineScope()
     val insets = WindowInsets.navigationBars
 
-    LaunchedEffect(Unit) {
-        sheetState.show()
+    LaunchedEffect(prefilled) {
+        viewModel.updateState(prefilled)
     }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 650.dp)
                 .windowInsetsPadding(insets)
         ) {
-            AccountScreen(
-                state = state,
-                canSave = canSave,
-                onIconChange = viewModel::updateIcon,
-                onLabelChange = viewModel::updateLabel,
-                onIssuerChange = viewModel::updateIssuer,
-                onSecretChange = viewModel::updateSecret,
-                onTypeChange = viewModel::updateType,
-                onDigestChange = viewModel::updateDigest,
-                onDigitsChange = viewModel::updateDigits,
-                onCounterChange = viewModel::updateCounter,
-                onPeriodChange = viewModel::updatePeriod,
-                onSave = {
-                    viewModel.saveData()
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        onDismiss()
+            Box(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    when (state) {
+                        is AccountScreenState.Loading -> {
+                            AccountScreenLoading()
+                        }
+                        is AccountScreenState.Success -> {
+                            AccountScreenSuccess(
+                                info = (state as AccountScreenState.Success).info,
+                                onIconChange = viewModel::updateIcon,
+                                onLabelChange = viewModel::updateLabel,
+                                onIssuerChange = viewModel::updateIssuer,
+                                onSecretChange = viewModel::updateSecret,
+                                onTypeChange = viewModel::updateType,
+                                onDigestChange = viewModel::updateDigest,
+                                onDigitsChange = viewModel::updateDigits,
+                                onCounterChange = viewModel::updateCounter,
+                                onPeriodChange = viewModel::updatePeriod
+                            )
+                        }
+                        is AccountScreenState.Error -> {
+                            AccountScreenError()
+                        }
                     }
                 }
-            )
+                Button(
+                    onClick = {
+                        viewModel.saveData()
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
+                    },
+                    enabled = canSave,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .zIndex(1f),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.account_actions_save),
+                    )
+                }
+            }
         }
     }
 }
 
 
+
 @Composable
 fun EditAccountScreen(
-    id: UUID,
+    id: UUID? = null,
+    prefilled: DomainAccountInfo? = null,
     onDismiss: () -> Unit
 ) {
     val viewModel: AccountViewModel = koinViewModel {
-        parametersOf(AccountViewModelParams.Id(id))
+        parametersOf(
+            when {
+                id != null -> AccountViewModelParams.Id(id)
+                prefilled != null -> AccountViewModelParams.Prefilled(prefilled)
+                else -> throw IllegalArgumentException("Either id or prefilled must be provided.")
+            }
+        )
     }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -107,13 +144,16 @@ fun EditAccountScreen(
     val coroutineScope = rememberCoroutineScope()
     val insets = WindowInsets.navigationBars
 
-    LaunchedEffect(Unit) {
-        sheetState.show()
+    LaunchedEffect(id, prefilled) {
+        when {
+            id != null -> viewModel.reloadAccount(id)
+            prefilled != null -> viewModel.updateState(prefilled)
+        }
     }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        sheetState = sheetState
     ) {
         Box(
             modifier = Modifier
@@ -121,147 +161,59 @@ fun EditAccountScreen(
                 .heightIn(max = 650.dp)
                 .windowInsetsPadding(insets)
         ) {
-            AccountBottomSheetContent(
-                state = state,
-                canSave = canSave,
-                onIconChange = viewModel::updateIcon,
-                onLabelChange = viewModel::updateLabel,
-                onIssuerChange = viewModel::updateIssuer,
-                onSecretChange = viewModel::updateSecret,
-                onTypeChange = viewModel::updateType,
-                onDigestChange = viewModel::updateDigest,
-                onDigitsChange = viewModel::updateDigits,
-                onCounterChange = viewModel::updateCounter,
-                onPeriodChange = viewModel::updatePeriod,
-                onSave = {
-                    viewModel.saveData()
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        onDismiss()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    when (state) {
+                        is AccountScreenState.Loading -> {
+                            AccountScreenLoading()
+                        }
+
+                        is AccountScreenState.Success -> {
+                            AccountScreenSuccess(
+                                info = (state as AccountScreenState.Success).info,
+                                onIconChange = viewModel::updateIcon,
+                                onLabelChange = viewModel::updateLabel,
+                                onIssuerChange = viewModel::updateIssuer,
+                                onSecretChange = viewModel::updateSecret,
+                                onTypeChange = viewModel::updateType,
+                                onDigestChange = viewModel::updateDigest,
+                                onDigitsChange = viewModel::updateDigits,
+                                onCounterChange = viewModel::updateCounter,
+                                onPeriodChange = viewModel::updatePeriod
+                            )
+                        }
+
+                        is AccountScreenState.Error -> {
+                            AccountScreenError()
+                        }
                     }
                 }
-            )
-        }
-    }
-}
 
-@Composable
-fun AccountScreen(
-    state: AccountScreenState,
-    canSave: Boolean,
-    onIconChange: (Uri?) -> Unit,
-    onLabelChange: (String) -> Unit,
-    onIssuerChange: (String) -> Unit,
-    onSecretChange: (String) -> Unit,
-    onTypeChange: (OtpType) -> Unit,
-    onDigestChange: (OtpDigest) -> Unit,
-    onDigitsChange: (String) -> Unit,
-    onCounterChange: (String) -> Unit,
-    onPeriodChange: (String) -> Unit,
-    onSave: () -> Unit
-) {
-    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            when (state) {
-                is AccountScreenState.Loading -> {
-                    AccountScreenLoading()
-                }
-                is AccountScreenState.Success -> {
-                    AccountScreenSuccess(
-                        info = state.info,
-                        onIconChange = onIconChange,
-                        onLabelChange = onLabelChange,
-                        onIssuerChange = onIssuerChange,
-                        onSecretChange = onSecretChange,
-                        onTypeChange = onTypeChange,
-                        onDigestChange = onDigestChange,
-                        onDigitsChange = onDigitsChange,
-                        onCounterChange = onCounterChange,
-                        onPeriodChange = onPeriodChange
+                Button(
+                    onClick = {
+                        viewModel.saveData()
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
+                    },
+                    enabled = canSave,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                        .zIndex(1f),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.account_actions_save),
                     )
-                }
-                is AccountScreenState.Error -> {
-                    AccountScreenError()
                 }
             }
         }
-        Button(
-            onClick = onSave,
-            enabled = canSave,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-                .zIndex(1f),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.account_actions_save),
-            )
-        }
     }
 }
-
-
-@Composable
-fun AccountBottomSheetContent(
-    state: AccountScreenState,
-    canSave: Boolean,
-    onIconChange: (Uri?) -> Unit,
-    onLabelChange: (String) -> Unit,
-    onIssuerChange: (String) -> Unit,
-    onSecretChange: (String) -> Unit,
-    onTypeChange: (OtpType) -> Unit,
-    onDigestChange: (OtpDigest) -> Unit,
-    onDigitsChange: (String) -> Unit,
-    onCounterChange: (String) -> Unit,
-    onPeriodChange: (String) -> Unit,
-    onSave: () -> Unit
-) {
-
-    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            when (state) {
-                is AccountScreenState.Loading -> {
-                    AccountScreenLoading()
-                }
-
-                is AccountScreenState.Success -> {
-                    AccountScreenSuccess(
-                        info = state.info,
-                        onIconChange = onIconChange,
-                        onLabelChange = onLabelChange,
-                        onIssuerChange = onIssuerChange,
-                        onSecretChange = onSecretChange,
-                        onTypeChange = onTypeChange,
-                        onDigestChange = onDigestChange,
-                        onDigitsChange = onDigitsChange,
-                        onCounterChange = onCounterChange,
-                        onPeriodChange = onPeriodChange
-                    )
-                }
-
-                is AccountScreenState.Error -> {
-                    AccountScreenError()
-                }
-            }
-        }
-
-        Button(
-            onClick = onSave,
-            enabled = canSave,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-                .zIndex(1f),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.account_actions_save),
-            )
-        }
-    }
-
-}
-

@@ -187,4 +187,25 @@ class AccountViewModel(
             }
         }
     }
+
+    fun reloadAccount(id: UUID) {
+        viewModelScope.launch {
+            _state.value = AccountScreenState.Loading
+            accounts.getAccountInfo(id)
+                .onEach { accountInfo ->
+                    _initialInfo.value = accountInfo
+                    _state.value = AccountScreenState.Success(accountInfo)
+                }
+                .catch { e ->
+                    _state.value = AccountScreenState.Error(e.localizedMessage ?: e.message ?: e.stackTraceToString())
+                }
+                .launchIn(viewModelScope)
+        }
+    }
+
+
+    fun updateState(prefilled: DomainAccountInfo) {
+        _initialInfo.value = prefilled
+        _state.value = AccountScreenState.Success(prefilled)
+    }
 }
