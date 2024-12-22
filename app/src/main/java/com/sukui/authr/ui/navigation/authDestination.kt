@@ -19,11 +19,6 @@ sealed class authDestination(val isFullscreenDialog: Boolean = false) : Parcelab
     @Parcelize
     data class AddAccount(
         val params: DomainAccountInfo
-    ) : authDestination(isFullscreenDialog = true)
-
-    @Parcelize
-    data class EditAccount(
-        val id: UUID,
     ) : authDestination()
 
     @Parcelize

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukui.authr.domain.account.model.DomainAccountInfo
+import com.sukui.authr.ui.screen.account.AddAccountScreen
 import com.sukui.authr.ui.screen.account.EditAccountScreen
 import com.sukui.authr.ui.screen.home.component.HomeAddAccountSheet
 import com.sukui.authr.ui.screen.home.component.HomeDeleteAccountsDialog
@@ -49,6 +50,7 @@ fun HomeScreen(
     }
 
     var showAddSheet by remember { mutableStateOf(false) }
+    var showAddManualSheet by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
     var accountToEdit by remember { mutableStateOf<UUID?>(null) }
@@ -112,6 +114,13 @@ fun HomeScreen(
                     HomeAddAccountMenu.Manual -> onAddAccountManually()
                 }
             }
+        )
+    }
+
+    if (showAddManualSheet) {
+        AddAccountScreen(
+            prefilled = DomainAccountInfo.new(),
+            onDismiss = { showAddManualSheet = false }
         )
     }
 

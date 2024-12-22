@@ -20,9 +20,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sukui.authr.core.settings.model.ColorSetting
@@ -34,7 +36,6 @@ import com.sukui.authr.domain.otp.OtpRepository
 import com.sukui.authr.ui.navigation.authDestination
 import com.sukui.authr.ui.screen.about.AboutScreen
 import com.sukui.authr.ui.screen.account.AddAccountScreen
-import com.sukui.authr.ui.screen.account.EditAccountScreen
 import com.sukui.authr.ui.screen.auth.AuthScreen
 import com.sukui.authr.ui.screen.export.ExportScreen
 import com.sukui.authr.ui.screen.home.HomeScreen
@@ -63,7 +64,6 @@ class MainActivity : FragmentActivity() {
     private val auth: AuthRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
         super.onCreate(savedInstanceState)
 
 
@@ -101,6 +101,9 @@ class MainActivity : FragmentActivity() {
         setContent {
             val theme by settings.getTheme().collectAsStateWithLifecycle(initialValue = ThemeSetting.DEFAULT)
             val color by settings.getColor().collectAsStateWithLifecycle(initialValue = ColorSetting.DEFAULT)
+            var showAddManualSheet by remember { mutableStateOf(false) }
+            var prefilled by remember { mutableStateOf(DomainAccountInfo.new()) }
+
             MauthTheme(
                 theme = theme,
                 color = color
@@ -114,7 +117,8 @@ class MainActivity : FragmentActivity() {
                     LaunchedEffect(intent.data) {
                         val accountInfo = otp.parseUriToAccountInfo(intent.data.toString())
                         if (accountInfo != null) {
-                            navigator.navigate(authDestination.AddAccount(accountInfo))
+                            prefilled = accountInfo
+                            showAddManualSheet = true
                         }
                     }
 
@@ -184,15 +188,15 @@ class MainActivity : FragmentActivity() {
                             is authDestination.Home -> {
                                 HomeScreen(
                                     onAddAccountManually = {
-                                        navigator.navigate(
-                                            authDestination.AddAccount(DomainAccountInfo.new())
-                                        )
+                                        prefilled = DomainAccountInfo.new()
+                                        showAddManualSheet = true
                                     },
                                     onAddAccountViaScanning = {
                                         navigator.navigate(authDestination.QrScanner)
                                     },
                                     onAddAccountFromImage = {
-                                        navigator.navigate(authDestination.AddAccount(it))
+                                        prefilled = it
+                                        showAddManualSheet = true
                                     },
                                     onSettingsNavigate = {
                                         navigator.navigate(authDestination.Settings)
@@ -209,7 +213,8 @@ class MainActivity : FragmentActivity() {
                                 QrScanScreen(
                                     onBack = navigator::pop,
                                     onScan = {
-                                        navigator.replaceLast(authDestination.AddAccount(it))
+                                        prefilled = it
+                                        showAddManualSheet = true
                                     }
                                 )
                             }
@@ -233,12 +238,6 @@ class MainActivity : FragmentActivity() {
                             is authDestination.AddAccount -> {
                                 AddAccountScreen(
                                     prefilled = screen.params,
-                                    onExit = navigator::pop
-                                )
-                            }
-                            is authDestination.EditAccount -> {
-                                EditAccountScreen(
-                                    id = screen.id,
                                     onDismiss = navigator::pop
                                 )
                             }
@@ -259,6 +258,21 @@ class MainActivity : FragmentActivity() {
                             }
                         }
                     }
+                }
+
+                // Launch modal only after state is updated
+                LaunchedEffect(prefilled) {
+                    if (showAddManualSheet) {
+                        showAddManualSheet = false
+                        showAddManualSheet = true
+                    }
+                }
+
+                if (showAddManualSheet) {
+                    AddAccountScreen(
+                        prefilled = prefilled,
+                        onDismiss = { showAddManualSheet = false }
+                    )
                 }
             }
         }
