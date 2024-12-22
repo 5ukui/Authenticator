@@ -1,7 +1,6 @@
 package com.sukui.authr.ui.navigation
 
 import android.os.Parcelable
-import com.sukui.authr.domain.account.model.DomainAccountInfo
 import kotlinx.parcelize.Parcelize
 import java.util.UUID
 

@@ -34,40 +34,20 @@ fun QrScanScreen(
     onBack: () -> Unit,
     onScan: (DomainAccountInfo) -> Unit
 ) {
-    val cameraPermission = rememberPermissionState(
-        permission = Manifest.permission.CAMERA
-    )
+    val cameraPermission = rememberPermissionState(permission = Manifest.permission.CAMERA)
     val viewModel: QrScanViewModel = koinViewModel()
-    QrScanScreen(
-        onBack = onBack,
-        onScan = {
-            viewModel.parseResult(it)?.let { parsedInfo ->
-                onScan(parsedInfo)
-            }
-        },
-        permissionStatus = cameraPermission.status,
-        onRequestPermission = {
-            cameraPermission.launchPermissionRequest()
-        }
-    )
-}
-
-@Composable
-fun QrScanScreen(
-    onBack: () -> Unit,
-    onScan: (com.google.zxing.Result) -> Unit,
-    permissionStatus: PermissionStatus,
-    onRequestPermission: () -> Unit,
-) {
     var showPermissionDeniedDialog by remember { mutableStateOf(false) }
     var showPermissionDeniedDialogRationale by remember { mutableStateOf(false) }
-    LaunchedEffect(permissionStatus) {
-        if (permissionStatus is PermissionStatus.Denied) {
+
+    LaunchedEffect(cameraPermission.status) {
+        if (cameraPermission.status is PermissionStatus.Denied) {
             showPermissionDeniedDialog = true
-            showPermissionDeniedDialogRationale = permissionStatus.shouldShowRationale
+            showPermissionDeniedDialogRationale = (cameraPermission.status as PermissionStatus.Denied).shouldShowRationale
         }
     }
+
     BackHandler(onBack = onBack)
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -92,9 +72,15 @@ fun QrScanScreen(
                 .padding(paddingValues),
             contentAlignment = Alignment.Center,
         ) {
-            when (permissionStatus) {
+            when (cameraPermission.status) {
                 is PermissionStatus.Granted -> {
-                    QrScanPermissionGranted(onScan = onScan)
+                    QrScanPermissionGranted(
+                        onScan = { result ->
+                            viewModel.parseResult(result)?.let { parsedInfo ->
+                                onScan(parsedInfo)
+                            }
+                        }
+                    )
                 }
                 is PermissionStatus.Denied -> {
                     QrScanPermissionDenied()
@@ -108,7 +94,7 @@ fun QrScanScreen(
             shouldShowRationale = showPermissionDeniedDialogRationale,
             onGrantPermission = {
                 showPermissionDeniedDialog = false
-                onRequestPermission()
+                cameraPermission.launchPermissionRequest()
             },
             onCancel = {
                 showPermissionDeniedDialog = false
