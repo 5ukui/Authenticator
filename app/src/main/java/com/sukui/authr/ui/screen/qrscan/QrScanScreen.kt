@@ -54,9 +54,7 @@ fun QrScanScreen(
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
-    val insets = WindowInsets.navigationBars
 
-    // Handle permission status changes
     LaunchedEffect(cameraPermission.status) {
         if (cameraPermission.status is PermissionStatus.Denied) {
             showPermissionDeniedDialog = true
@@ -102,7 +100,6 @@ fun QrScanScreen(
         }
     }
 
-    // Show Permission Dialog if Denied
     if (showPermissionDeniedDialog) {
         QrScanPermissionDeniedDialog(
             shouldShowRationale = showPermissionDeniedDialogRationale,

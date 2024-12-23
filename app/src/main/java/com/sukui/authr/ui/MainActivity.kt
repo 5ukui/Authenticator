@@ -262,7 +262,6 @@ class MainActivity : FragmentActivity() {
                         prefilled = prefilled,
                         onDismiss = {
                             showAddManualSheet = false
-//                            prefilled = DomainAccountInfo.new() // Clear fields on dismiss
                         }
                     )
                 }

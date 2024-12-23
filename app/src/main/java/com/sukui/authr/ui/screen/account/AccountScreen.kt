@@ -144,6 +144,12 @@ fun EditAccountScreen(
         }
     }
 
+    LaunchedEffect(state) {
+        if (state is AccountScreenState.Success) {
+            sheetState.show()
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState
