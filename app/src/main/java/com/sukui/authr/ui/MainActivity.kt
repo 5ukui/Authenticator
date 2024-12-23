@@ -102,6 +102,7 @@ class MainActivity : FragmentActivity() {
             val theme by settings.getTheme().collectAsStateWithLifecycle(initialValue = ThemeSetting.DEFAULT)
             val color by settings.getColor().collectAsStateWithLifecycle(initialValue = ColorSetting.DEFAULT)
             var showAddManualSheet by remember { mutableStateOf(false) }
+            var showQrScanSheet by remember {mutableStateOf(false)  }
             var prefilled by remember { mutableStateOf(DomainAccountInfo.new()) }
 
             MauthTheme(
@@ -192,7 +193,7 @@ class MainActivity : FragmentActivity() {
                                         showAddManualSheet = true
                                     },
                                     onAddAccountViaScanning = {
-                                        navigator.navigate(authDestination.QrScanner)
+                                        showQrScanSheet = true
                                     },
                                     onAddAccountFromImage = {
                                         prefilled = it
@@ -206,15 +207,6 @@ class MainActivity : FragmentActivity() {
                                     },
                                     onAboutNavigate = {
                                         navigator.navigate(authDestination.About)
-                                    }
-                                )
-                            }
-                            is authDestination.QrScanner -> {
-                                QrScanScreen(
-                                    onBack = navigator::pop,
-                                    onScan = {
-                                        prefilled = it
-                                        showAddManualSheet = true
                                     }
                                 )
                             }
@@ -254,13 +246,23 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
+                if (showQrScanSheet) {
+                    QrScanScreen(
+                        onDismiss = { showQrScanSheet = false },
+                        onScan = {
+                            prefilled = it
+                            showAddManualSheet = true
+                        }
+                    )
+                }
+
 
                 if (showAddManualSheet) {
                     AddAccountScreen(
                         prefilled = prefilled,
                         onDismiss = {
                             showAddManualSheet = false
-                            prefilled = DomainAccountInfo.new() // Clear fields on dismiss
+//                            prefilled = DomainAccountInfo.new() // Clear fields on dismiss
                         }
                     )
                 }
