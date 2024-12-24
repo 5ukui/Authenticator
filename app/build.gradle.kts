@@ -44,10 +44,10 @@ android {
     kotlinOptions {
         jvmTarget = "17"
         freeCompilerArgs = freeCompilerArgs +
-            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi" +
-            "-opt-in=androidx.compose.animation.ExperimentalAnimationApi" +
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api" +
-            "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi"
+                "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi" +
+                "-opt-in=androidx.compose.animation.ExperimentalAnimationApi" +
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api" +
+                "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi"
 
         freeCompilerArgs += listOf(
             "-P",
@@ -125,6 +125,8 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-view:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("com.google.protobuf:protobuf-kotlin:4.29.2")
+
 
     val roomVersion = "2.6.1"
     implementation("androidx.room:room-common:$roomVersion")
@@ -152,5 +154,4 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-
 }
