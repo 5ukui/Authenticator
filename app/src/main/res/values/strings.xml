@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">authr</string>
+    <string name="app_name" translatable="false">Authenticator</string>
 
     <string name="auth_title">Enter your PIN</string>
     <string name="auth_biometrics_title">Biometric Authentication</string>

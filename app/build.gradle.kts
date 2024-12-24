@@ -7,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.sukui.authr"
+    namespace = "com.sukui.authenticator"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.sukui.authr"
+        applicationId = "com.sukui.authenticator"
         minSdk = 21
         targetSdk = 35
         versionCode = 90
-        versionName = "0.9.0"
+        versionName = "0.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
