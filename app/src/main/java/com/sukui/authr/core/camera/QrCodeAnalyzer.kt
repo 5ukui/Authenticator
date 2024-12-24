@@ -10,6 +10,7 @@ import java.net.URLDecoder
 import com.google.protobuf.InvalidProtocolBufferException
 import com.sukui.authr.core.otp.OtpMigration.Payload
 import org.apache.commons.codec.binary.Base32
+import java.net.URLEncoder
 
 
 class QrCodeAnalyzer(
@@ -25,16 +26,22 @@ class QrCodeAnalyzer(
                 dataWidth = imageProxy.width,
                 dataHeight = imageProxy.height,
                 onSuccess = { result ->
-                    val uri = result.text // Log the URI that was decoded
-                    Log.d("QR_SCAN", "Decoded URI: $uri")
+                    Log.d("QR_SCAN", "Decoded Text: ${result.text}")
+                    Log.d("QR_SCAN", "Raw Bytes: ${result.rawBytes?.joinToString(", ") ?: "No raw bytes"}")
+                    Log.d("QR_SCAN", "Barcode Format: ${result.barcodeFormat}")
+                    Log.d("QR_SCAN", "Result Points: ${result.resultPoints?.joinToString { "(${it.x}, ${it.y})" } ?: "No result points"}")
 
-                    if (uri.startsWith("otpauth://")) {
+                    if (result.text.startsWith("otpauth://")) {
                         onSuccess(result)
-                    } else if (uri.startsWith("otpauth-migration://")) {
-                        val uriParts = uri.split("=", limit = 2)
-                        val base = uriParts[1]
-                        Log.d("Base", "Base: $base")
-                        decodeOtpAuthMigrationLink(uri)
+                    } else if (result.text.startsWith("otpauth-migration://")) {
+                        val otpLink = decodeOtpAuthMigrationLink(result.text)
+                        val modifiedResult = com.google.zxing.Result(
+                            otpLink,
+                            result.rawBytes,
+                            result.resultPoints,
+                            result.barcodeFormat
+                        )
+                        onSuccess(modifiedResult)
                     } else {
                         Log.e("QR_SCAN", "Unsupported QR Code format")
                         onFail
@@ -53,53 +60,41 @@ class QrCodeAnalyzer(
         return bytes
     }
 
-    private fun decodeOtpAuthMigrationLink(link: String) {
-        try {
-            // Step 1: URL Decode
+    private fun decodeOtpAuthMigrationLink(link: String): String {
+        return try {
             val decodedLink = URLDecoder.decode(link, "UTF-8")
             Log.d("DecodedLink", "URL Decoded: $decodedLink")
-
-            // Step 2: Extract Base64 Data
             val base64Data = decodedLink.split("=", limit = 2).getOrNull(1)
                 ?: throw IllegalArgumentException("Invalid OTP migration link: No data parameter found")
 
-            // Step 3: Base64 Decode
             val decodedData = Base64.decode(base64Data, Base64.DEFAULT)
-
-            // Step 4: Parse Protobuf Payload
             val otpMigrationPayload = Payload.parseFrom(decodedData)
+            val otpParameter = otpMigrationPayload.otpParametersList.firstOrNull()
+                ?: throw IllegalArgumentException("No OTP parameters found in the migration link")
 
-            // Step 5: Log the Parsed Data
-            Log.d("OtpMigration", "Version: ${otpMigrationPayload.version}")
-            Log.d("OtpMigration", "Batch Size: ${otpMigrationPayload.batchSize}")
-            Log.d("OtpMigration", "Batch Index: ${otpMigrationPayload.batchIndex}")
-            Log.d("OtpMigration", "Batch ID: ${otpMigrationPayload.batchId}")
-            Log.d("OtpMigration", "---- OTP Parameters ----")
+            val base32 = Base32()
+            val secretBase32 = base32.encodeToString(otpParameter.secret.toByteArray())
 
-            otpMigrationPayload.otpParametersList.forEachIndexed { index, otpParameter ->
-                Log.d("OtpMigration", "Account #${index + 1}")
-                Log.d("OtpMigration", "Name: ${otpParameter.name}")
-                Log.d("OtpMigration", "Issuer: ${otpParameter.issuer}")
-                Log.d("OtpMigration", "Raw Secret: ${otpParameter.secret}")
-                val secretBytes = otpParameter.secret.toByteArray()
-                val base32 = Base32()
-                val secretBase32 = base32.encodeToString(secretBytes)
-                Log.d("OtpMigration", "Decoded Secret (Base32): $secretBase32")
-                Log.d("OtpMigration", "Algorithm: ${otpParameter.algorithm}")
-                Log.d("OtpMigration", "Digits: ${otpParameter.digits}")
-                Log.d("OtpMigration", "Type: ${otpParameter.type}")
+            val accountName = URLEncoder.encode(otpParameter.name ?: "Test Token", "UTF-8")
+            val issuer = URLEncoder.encode(otpParameter.issuer ?: "2FAS", "UTF-8")
 
-                if (otpParameter.type.getNumber() == Payload.OtpType.OTP_TYPE_HOTP_VALUE) {
-                    Log.d("OtpMigration", "Counter: ${otpParameter.counter}")
-                }
-
-                Log.d("OtpMigration", "------------------------")
+            val otpLink = buildString {
+                append("otpauth://totp/")
+                append(accountName)
+                append("?secret=$secretBase32")
+                append("&issuer=$issuer")
             }
+
+            Log.d("OtpMigration", "Generated OTPAuth Link: $otpLink")
+            otpLink
         } catch (e: InvalidProtocolBufferException) {
             Log.e("OtpMigration", "Failed to parse OTP migration payload: ${e.message}")
+            throw e
         } catch (e: Exception) {
             Log.e("OtpMigration", "Error: ${e.message}", e)
+            throw e
         }
     }
+
 
 }
