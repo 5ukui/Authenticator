@@ -1,19 +1,21 @@
 package com.sukui.authr.core.otp.parser
 
 import android.net.Uri
+import android.util.Log
 import com.sukui.authr.core.otp.model.OtpData
 import com.sukui.authr.core.otp.model.OtpDigest
 import com.sukui.authr.core.otp.model.OtpType
+import com.sukui.authr.core.camera.decodeOtpAuthMigrationLink
 
 
 class DefaultOtpUriParser : OtpUriParser {
 
     override fun parseOtpUri(keyUri: String): OtpUriParserResult {
-        val uri = Uri.parse(keyUri)
-
+        var uri: Uri = Uri.parse(keyUri)
         val protocol = uri.scheme?.lowercase()
-        if (protocol != "otpauth") {
-            return OtpUriParserResult.Failure(OtpUriParserError.ERROR_INVALID_PROTOCOL)
+        if (protocol != "otpauth" && protocol == "otpauth-migration") {
+            val otpLink = decodeOtpAuthMigrationLink(keyUri)
+            uri = Uri.parse(otpLink)
         }
 
         val type = when (uri.host?.lowercase()) {

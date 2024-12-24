@@ -59,42 +59,40 @@ class QrCodeAnalyzer(
         get(bytes)
         return bytes
     }
+}
 
-    private fun decodeOtpAuthMigrationLink(link: String): String {
-        return try {
-            val decodedLink = URLDecoder.decode(link, "UTF-8")
-            Log.d("DecodedLink", "URL Decoded: $decodedLink")
-            val base64Data = decodedLink.split("=", limit = 2).getOrNull(1)
-                ?: throw IllegalArgumentException("Invalid OTP migration link: No data parameter found")
+fun decodeOtpAuthMigrationLink(link: String): String {
+    return try {
+        val decodedLink = URLDecoder.decode(link, "UTF-8")
+        Log.d("DecodedLink", "URL Decoded: $decodedLink")
+        val base64Data = decodedLink.split("=", limit = 2).getOrNull(1)
+            ?: throw IllegalArgumentException("Invalid OTP migration link: No data parameter found")
 
-            val decodedData = Base64.decode(base64Data, Base64.DEFAULT)
-            val otpMigrationPayload = Payload.parseFrom(decodedData)
-            val otpParameter = otpMigrationPayload.otpParametersList.firstOrNull()
-                ?: throw IllegalArgumentException("No OTP parameters found in the migration link")
+        val decodedData = Base64.decode(base64Data, Base64.DEFAULT)
+        val otpMigrationPayload = Payload.parseFrom(decodedData)
+        val otpParameter = otpMigrationPayload.otpParametersList.firstOrNull()
+            ?: throw IllegalArgumentException("No OTP parameters found in the migration link")
 
-            val base32 = Base32()
-            val secretBase32 = base32.encodeToString(otpParameter.secret.toByteArray())
+        val base32 = Base32()
+        val secretBase32 = base32.encodeToString(otpParameter.secret.toByteArray())
 
-            val accountName = URLEncoder.encode(otpParameter.name ?: "Test Token", "UTF-8")
-            val issuer = URLEncoder.encode(otpParameter.issuer ?: "2FAS", "UTF-8")
+        val accountName = URLEncoder.encode(otpParameter.name ?: "Test Token", "UTF-8")
+        val issuer = URLEncoder.encode(otpParameter.issuer ?: "2FAS", "UTF-8")
 
-            val otpLink = buildString {
-                append("otpauth://totp/")
-                append(accountName)
-                append("?secret=$secretBase32")
-                append("&issuer=$issuer")
-            }
-
-            Log.d("OtpMigration", "Generated OTPAuth Link: $otpLink")
-            otpLink
-        } catch (e: InvalidProtocolBufferException) {
-            Log.e("OtpMigration", "Failed to parse OTP migration payload: ${e.message}")
-            throw e
-        } catch (e: Exception) {
-            Log.e("OtpMigration", "Error: ${e.message}", e)
-            throw e
+        val otpLink = buildString {
+            append("otpauth://totp/")
+            append(accountName)
+            append("?secret=$secretBase32")
+            append("&issuer=$issuer")
         }
+
+        Log.d("OtpMigration", "Generated OTPAuth Link: $otpLink")
+        otpLink
+    } catch (e: InvalidProtocolBufferException) {
+        Log.e("OtpMigration", "Failed to parse OTP migration payload: ${e.message}")
+        throw e
+    } catch (e: Exception) {
+        Log.e("OtpMigration", "Error: ${e.message}", e)
+        throw e
     }
-
-
 }
